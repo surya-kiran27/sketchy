@@ -24,6 +24,9 @@ export class Canvas extends React.Component {
         this.exportImage = this.exportImage.bind(this);
         this.canvas = React.createRef();
         this.canvasRef = React.createRef();
+        this.draw = this.draw.bind(this);
+        this.clearCanvas = this.clearCanvas.bind(this);
+
     }
     state = {
         paths: {}
@@ -48,23 +51,28 @@ export class Canvas extends React.Component {
 
         this.canvas.current = context;
     }
-    componentDidUpdate() {
-
+    async componentDidUpdate(prevProps) {
         const paths = this.props.paths;
-        if (paths.length === 0)
+        console.log();
+        if (prevProps.paths.length > this.props.paths.length) {
+            await this.clearCanvas();
+            paths.forEach(element => {
+                this.draw(element.paths, element.strokeWidth, element.strokeColor);
+            });
+        }
+        if (paths.length === 0) {
             this.clearCanvas();
+        }
         else
             paths.forEach(element => {
                 this.draw(element.paths, element.strokeWidth, element.strokeColor);
             });
-
-
     }
     componentWillUnmount() {
         document.removeEventListener("pointerup", this.handlePointerUp);
     }
 
-    clearCanvas = () => {
+    clearCanvas() {
         const canvas = this.canvas.current.canvas;
         const context = canvas.getContext("2d");
 
@@ -72,13 +80,16 @@ export class Canvas extends React.Component {
 
         var background = new Image();
         background.src = this.props.background;
-        background.onload = function () {
-            context.drawImage(background, 0, 0, canvas.width, canvas.height);
-        }
-
+        return new Promise((resolve, reject) => {
+            background.onload = () => {
+                context.drawImage(background, 0, 0, canvas.width, canvas.height);
+                resolve();
+            }
+        });
 
     }
-    draw = (paths, lineWidth, strokeColor) => {
+
+    draw(paths, lineWidth, strokeColor) {
         const canvas = this.canvas.current.canvas;
         const context = canvas.getContext("2d");
         context.lineCap = "round";
@@ -92,7 +103,6 @@ export class Canvas extends React.Component {
         this.canvas.current.stroke();
     }
     getCoordinatesCanvas(pointerEvent) {
-        console.log(this.canvas.current.canvas.offsetLeft);
         const point = {
             x: (pointerEvent.pageX - this.canvas.current.canvas.offsetLeft),
             y: (pointerEvent.pageY - this.canvas.current.canvas.offsetTop)
@@ -111,7 +121,10 @@ export class Canvas extends React.Component {
         if (event.pointerType === "mouse" && event.button !== 0)
             return;
         // const point = this.getCoordinates(event);
-        const point = this.getCoordinatesCanvas(event);
+        let point = this.getCoordinatesCanvas(event);
+        point.pressure = event.pressure;
+        point.tiltX = event.tiltX;
+        point.tiltY = event.tiltY;
         onPointerDown(point, event);
     }
     handlePointerMove(event) {
@@ -125,7 +138,10 @@ export class Canvas extends React.Component {
         }
 
         // const point = this.getCoordinates(event);
-        const point = this.getCoordinatesCanvas(event);
+        let point = this.getCoordinatesCanvas(event);
+        point.pressure = event.pressure;
+        point.tiltX = event.tiltX;
+        point.tiltY = event.tiltY;
         onPointerMove(point, event);
     }
     handlePointerUp(event) {
@@ -162,24 +178,23 @@ export class Canvas extends React.Component {
     /* Finally!!! Render method */
     render() {
         const { width, height, background, style } = this.props;
-        console.log(width, height);
         return (
-            <canvas
-                onPointerDown={this.handlePointerDown}
-                onPointerMove={this.handlePointerMove}
-                onPointerUp={this.handlePointerUp}
-                ref={this.canvas}
-                height={height}
-                width={width}
-                style={{
-                    touchAction: "none",
-                    // background: `no-repeat center/cover url(${background})`,
-                    // backgroundSize: "cover",
-                    ...style
-                }}
-            >
+            <div>
+                <canvas
+                    onPointerDown={this.handlePointerDown}
+                    onPointerMove={this.handlePointerMove}
+                    onPointerUp={this.handlePointerUp}
+                    ref={this.canvas}
+                    height={height}
+                    width={width}
+                    style={{
+                        touchAction: "none",
+                        ...style
+                    }}
+                >
+                </canvas>
+            </div>
 
-            </canvas>
         );
     }
 }

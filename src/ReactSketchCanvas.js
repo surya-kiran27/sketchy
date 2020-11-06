@@ -74,7 +74,7 @@ export class ReactSketchCanvas extends React.Component {
     }
     /* Mouse Handlers - Mouse down, move and up */
     handlePointerDown(point, event) {
-        console.log(event)
+
         const { strokeColor, canvasColor, withTimestamp, } = this.props;
         this.setState(produce((draft) => {
             draft.isDrawing = true;
@@ -99,6 +99,7 @@ export class ReactSketchCanvas extends React.Component {
     handlePointerMove(point, event) {
 
         const { isDrawing } = this.state;
+
         if (!isDrawing)
             return;
         this.setState(produce((draft) => {
@@ -191,7 +192,12 @@ export class ReactSketchCanvas extends React.Component {
             if (lastSketchPath) {
                 draft.undoStack.push(lastSketchPath);
             }
-        }), this.liftPathsUp);
+        }),
+            this.liftPathsUp()
+
+        );
+
+
     }
     redo() {
         const { undoStack } = this.state;
@@ -247,6 +253,7 @@ export class ReactSketchCanvas extends React.Component {
         const { currentPaths, isDrawing } = this.state;
 
         return (
+
             <Canvas
                 ref={this.svgCanvas}
                 width={width}
