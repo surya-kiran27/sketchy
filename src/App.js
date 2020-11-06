@@ -69,8 +69,10 @@ class App extends React.Component {
               console.log(data);
               var a = document.createElement("a"); //Create <a>
               a.href = data;
-              a.download = `Image_${new Date()}.png`;
-              a.click(); //Downloaded file
+              a.download = `Image_${new Date.now()}.png`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
 
             }}
           >
@@ -114,7 +116,7 @@ class App extends React.Component {
               const href = URL.createObjectURL(blob);
               const link = document.createElement('a');
               link.href = href;
-              link.download = `paths_${new Date()}.json`;
+              link.download = `paths_${new Date.now()}.json`;
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
@@ -139,8 +141,10 @@ class App extends React.Component {
                 var csvURL = window.URL.createObjectURL(res);//disable for mp4
                 let tempLink = document.createElement('a');
                 tempLink.href = csvURL;
-                tempLink.setAttribute('download', `video_${new Date()}.webm`);
+                tempLink.setAttribute('download', `video_${new Date.now()}.webm`);
+                document.body.appendChild(tempLink);
                 tempLink.click();
+                document.body.removeChild(tempLink);
               }
             })
           }
