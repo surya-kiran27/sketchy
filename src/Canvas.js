@@ -43,7 +43,7 @@ export class Canvas extends React.Component {
         }
         context.lineCap = "round";
         context.lineJoin = "round";
-        context.strokeStyle = "black"
+        context.strokeStyle = this.props.strokeColor
         context.lineWidth = 5
 
         this.canvas.current = context;
@@ -55,7 +55,7 @@ export class Canvas extends React.Component {
             this.clearCanvas();
         else
             paths.forEach(element => {
-                this.draw(element.paths, element.strokeWidth);
+                this.draw(element.paths, element.strokeWidth, element.strokeColor);
             });
 
 
@@ -78,12 +78,12 @@ export class Canvas extends React.Component {
 
 
     }
-    draw = (paths, lineWidth) => {
+    draw = (paths, lineWidth, strokeColor) => {
         const canvas = this.canvas.current.canvas;
         const context = canvas.getContext("2d");
         context.lineCap = "round";
         context.lineJoin = "round";
-        context.strokeStyle = "black"
+        context.strokeStyle = strokeColor
         this.canvas.current.beginPath();
         this.canvas.current.lineWidth = lineWidth;
         paths.forEach(element => {

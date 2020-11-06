@@ -81,7 +81,7 @@ export class ReactSketchCanvas extends React.Component {
             draft.undoStack = [];
             let stroke = {
                 drawMode: draft.drawMode,
-                strokeColor: draft.drawMode ? strokeColor : canvasColor,
+                strokeColor: strokeColor,
                 strokeWidth: this.getLineWidth(event),
                 pointerType: event.pointerType,
                 pressure: event.pressure,
@@ -108,7 +108,7 @@ export class ReactSketchCanvas extends React.Component {
                 const { strokeColor, canvasColor, withTimestamp, } = this.props;
                 let stroke = {
                     drawMode: draft.drawMode,
-                    strokeColor: draft.drawMode ? strokeColor : canvasColor,
+                    strokeColor: strokeColor,
                     strokeWidth: this.getLineWidth(event),
                     pressure: event.pressure,
                     paths: [point],
@@ -134,7 +134,7 @@ export class ReactSketchCanvas extends React.Component {
                     return (e.width + e.height - 70) / 6;
                 }
             }
-            case 'pen': return e.pressure * 4;
+            case 'pen': return e.pressure * 4;//increase or decrease stroke width
             default: return (e.pressure) ? e.pressure * 6 : 6;
         }
     }
@@ -243,7 +243,7 @@ export class ReactSketchCanvas extends React.Component {
     }
     /* Finally!!! Render method */
     render() {
-        const { width, height, className, canvasColor, background, style, allowOnlyPointerType, } = this.props;
+        const { width, height, className, canvasColor, background, style, allowOnlyPointerType, strokeColor } = this.props;
         const { currentPaths, isDrawing } = this.state;
 
         return (
@@ -253,6 +253,7 @@ export class ReactSketchCanvas extends React.Component {
                 height={height}
                 className={className}
                 canvasColor={canvasColor}
+                strokeColor={strokeColor}
                 background={background}
                 allowOnlyPointerType={allowOnlyPointerType}
                 style={style}

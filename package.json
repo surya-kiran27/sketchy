@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.9.3",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "@ffmpeg/ffmpeg": "^0.9.3",
     "immer": "^7.0.14",
     "pepjs": "^0.5.2",
     "react": "^17.0.1",
     "react-base64-downloader": "^2.1.6",
     "react-canvas-recorder": "^1.1.1",
+    "react-color": "^2.19.3",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.0",
     "web-vitals": "^0.2.4"
