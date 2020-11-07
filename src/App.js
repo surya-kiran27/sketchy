@@ -22,7 +22,11 @@ class App extends React.Component {
     file: "",
     isRecording: false,
     strokeColor: "black",
-    background: ""
+    background: "",
+    videoBlob: "",
+    image: "",
+    pathsBlob: "",
+    fileName: "sample"
   }
   blobToFile = (theBlob, fileName) => {
     theBlob.lastModifiedDate = new Date();
@@ -70,35 +74,6 @@ class App extends React.Component {
 
   }
 
-  timeStamp() {
-    // Create a date object with the current time
-    var now = new Date();
-
-    // Create an array with the current month, day and time
-    var date = [now.getMonth() + 1, now.getDate(), now.getFullYear()];
-
-    // Create an array with the current hour, minute and second
-    var time = [now.getHours(), now.getMinutes(), now.getSeconds()];
-
-    // Determine AM or PM suffix based on the hour
-    var suffix = (time[0] < 12) ? "AM" : "PM";
-
-    // Convert hour from military time
-    time[0] = (time[0] < 12) ? time[0] : time[0] - 12;
-
-    // If hour is 0, set it to 12
-    time[0] = time[0] || 12;
-
-    // If seconds and minutes are less than 10, add a zero
-    for (var i = 1; i < 3; i++) {
-      if (time[i] < 10) {
-        time[i] = "0" + time[i];
-      }
-    }
-
-    // Return the formatted string
-    return date.join("/") + "_" + time.join(":") + "_" + suffix;
-  }
   handleChangeComplete = (color) => {
     this.setState({ strokeColor: color.hex });
   };
@@ -151,62 +126,56 @@ class App extends React.Component {
                     this.canvas.current.startRecording();
                   } else {
                     const res = await this.canvas.current.stopRecording()
-                    console.log(res);
-                    //convert to mp4
-                    // var myFile = this.blobToFile(res, "test.webm");
-                    // await ffmpeg.load();
-                    // ffmpeg.FS('writeFile', "test.webm", await fetchFile(myFile));
-                    // await ffmpeg.run('-i', "test.webm", 'video.mp4');
-                    // const data = ffmpeg.FS('readFile', 'video.mp4');
-                    // var csvURL = window.URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-                    var csvURL = window.URL.createObjectURL(res);//disable for mp4
-                    let tempLink = document.createElement('a');
-                    tempLink.href = csvURL;
-                    tempLink.setAttribute('download', `video_${this.timeStamp()}.webm`);
-                    document.body.appendChild(tempLink);
-                    tempLink.click();
-                    document.body.removeChild(tempLink);
+                    this.setState({ videoBlob: res });
+
                   }
                 })
               }
               }>{this.state.isRecording ? "Stop Recording" : "Start Recording"}</button>
               <button
                 className="getImage"
-                onClick={() => {
-                  const data = this.canvas.current.exportImage("png")
-                  var a = document.createElement("a"); //Create <a>
-                  a.href = data;
-                  a.download = `Image_${this.timeStamp()}.png`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
+                onClick={async () => {
+                  const paths = await this.canvas.current.exportPaths(true);
+                  const pathsBlob = new Blob([JSON.stringify(paths)], { type: 'application/json' });
+                  const image = this.canvas.current.exportImage("png")
+                  // downloading image
+                  if (image !== "") {
+                    var a = document.createElement("a");
+                    a.href = image;
+                    a.download = `${this.state.fileName}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                  }
+                  if (this.state.videoBlob !== "") {
+                    var videoUrl = window.URL.createObjectURL(this.state.videoBlob);
+                    let tempLink = document.createElement('a');
+                    tempLink.href = videoUrl;
+                    tempLink.setAttribute('download', `${this.state.fileName}.webm`);
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
+                  }
+                  if (pathsBlob !== "") {
+                    const href = URL.createObjectURL(pathsBlob);
+                    const link = document.createElement('a');
+                    link.href = href;
+                    link.download = `${this.state.fileName}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }
 
                 }}
               >
-                Download Image
-        </button>
+                Download All
+            </button>
               <input className="choose" type="file" onChange={this.handleUpload} />
               <label>upload background image</label>
               <input className="choose" type="file" onChange={this.getBase64} />
-              <button
-                className="exportPaths"
-                onClick={async () => {
 
-                  const paths = await this.canvas.current.exportPaths(true);
-                  if (paths.length === 0)
-                    alert("Please draw something!");
-                  const blob = new Blob([JSON.stringify(paths)], { type: 'application/json' });
-                  const href = URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.href = href;
-                  link.download = `paths_${this.timeStamp()}.json`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }}
-              >
-                Export paths
-        </button>
+              <input placeholder="Enter File Name" className="fileName" onChange={(e) => { this.setState({ fileName: e.target.value }) }} value={this.state.fileName} />
+
             </div>
 
 

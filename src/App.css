@@ -128,3 +128,9 @@
 .row .container .picker{
   width: 100px;
 }
+.fileName {
+  width: 90%;
+  padding: 12px 20px;
+  margin: 10px;
+  box-sizing: border-box;
+}
