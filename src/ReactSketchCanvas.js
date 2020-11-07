@@ -11,7 +11,7 @@ const defaultProps = {
     background: "",
     strokeWidth: 4,
     eraserWidth: 8,
-    allowOnlyPointerType: "all",
+    allowOnlyPointerType: "pen",
     style: {
         border: "0.0625rem solid #9c9c9c",
         borderRadius: "0.25rem",
@@ -74,19 +74,15 @@ export class ReactSketchCanvas extends React.Component {
     }
     /* Mouse Handlers - Mouse down, move and up */
     handlePointerDown(point, event) {
-
-        const { strokeColor, canvasColor, withTimestamp, } = this.props;
+        const { strokeColor, withTimestamp, } = this.props;
         this.setState(produce((draft) => {
             draft.isDrawing = true;
             draft.undoStack = [];
             let stroke = {
+                strokeID: this.state.currentPaths.length + 1,
                 drawMode: draft.drawMode,
                 strokeColor: strokeColor,
-                strokeWidth: this.getLineWidth(event),
                 pointerType: event.pointerType,
-                pressure: event.pressure,
-                tiltX: event.tiltX,
-                tiltY: event.tiltY,
                 paths: [point],
             };
             if (withTimestamp) {
@@ -96,49 +92,16 @@ export class ReactSketchCanvas extends React.Component {
             draft.currentPaths.push(stroke);
         }), this.liftPathsUp);
     }
-    handlePointerMove(point, event) {
-
+    handlePointerMove(point) {
         const { isDrawing } = this.state;
-
         if (!isDrawing)
             return;
         this.setState(produce((draft) => {
             const currentStroke = draft.currentPaths[draft.currentPaths.length - 1];
-            if (this.state.currentPaths[draft.currentPaths.length - 1].strokeWidth !== this.getLineWidth(event)) {
-
-                const { strokeColor, canvasColor, withTimestamp, } = this.props;
-                let stroke = {
-                    drawMode: draft.drawMode,
-                    strokeColor: strokeColor,
-                    strokeWidth: this.getLineWidth(event),
-                    pressure: event.pressure,
-                    paths: [point],
-                    pointerType: event.pointerType,
-                    tiltX: event.tiltX,
-                    tiltY: event.tiltY,
-
-                };
-                draft.currentPaths.push(stroke);
-                if (withTimestamp) {
-                    stroke = Object.assign(Object.assign({}, stroke), { startTimestamp: Date.now(), endTimestamp: 0 });
-                }
-            }
             currentStroke.paths.push(point);
         }), this.liftPathsUp);
     }
-    getLineWidth = function getLineWidth(e) {
-        switch (e.pointerType) {
-            case 'touch': {
-                if (e.width < 10 && e.height < 10) {
-                    return (e.width + e.height) * 2 + 10;
-                } else {
-                    return (e.width + e.height - 70) / 6;
-                }
-            }
-            case 'pen': return e.pressure * 4;//increase or decrease stroke width
-            default: return (e.pressure) ? e.pressure * 6 : 6;
-        }
-    }
+
     handlePointerUp() {
         const { withTimestamp } = this.props;
         const { isDrawing } = this.state;
@@ -234,6 +197,7 @@ export class ReactSketchCanvas extends React.Component {
         const { currentPaths } = this.state;
         return new Promise((resolve, reject) => {
             try {
+                console.log(currentPaths);
                 resolve(currentPaths);
             }
             catch (e) {

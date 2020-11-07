@@ -8,6 +8,7 @@ const defaultProps = {
     className: "",
     canvasColor: "red",
     background: "",
+    strokeColor: "black",
     allowOnlyPointerType: "all",
     style: {
         border: "0.0625rem solid #9c9c9c",
@@ -39,11 +40,11 @@ export class Canvas extends React.Component {
         const context = canvas.getContext("2d")
         var background = new Image();
         background.src = this.props.background;
-
         // Make sure the image is loaded first otherwise nothing will draw.
         background.onload = function () {
             context.drawImage(background, 0, 0, canvas.width, canvas.height);
         }
+        context.canvas.height = window.innerHeight;
         context.lineCap = "round";
         context.lineJoin = "round";
         context.strokeStyle = this.props.strokeColor
@@ -53,11 +54,21 @@ export class Canvas extends React.Component {
     }
     async componentDidUpdate(prevProps) {
         const paths = this.props.paths;
-        console.log();
+        if (prevProps.background !== this.props.background) {
+            const canvas = this.canvas.current.canvas;
+            const context = canvas.getContext("2d")
+            var background = new Image();
+            background.src = this.props.background;
+            console.log(background, this.props.background);
+            // Make sure the image is loaded first otherwise nothing will draw.
+            background.onload = function () {
+                context.drawImage(background, 0, 0, canvas.width, canvas.height);
+            }
+        }
         if (prevProps.paths.length > this.props.paths.length) {
             await this.clearCanvas();
             paths.forEach(element => {
-                this.draw(element.paths, element.strokeWidth, element.strokeColor);
+                this.draw(element.paths, element.strokeColor);
             });
         }
         if (paths.length === 0) {
@@ -65,7 +76,7 @@ export class Canvas extends React.Component {
         }
         else
             paths.forEach(element => {
-                this.draw(element.paths, element.strokeWidth, element.strokeColor);
+                this.draw(element.paths, element.strokeColor);
             });
     }
     componentWillUnmount() {
@@ -89,18 +100,27 @@ export class Canvas extends React.Component {
 
     }
 
-    draw(paths, lineWidth, strokeColor) {
+    draw(paths, strokeColor) {
         const canvas = this.canvas.current.canvas;
         const context = canvas.getContext("2d");
         context.lineCap = "round";
         context.lineJoin = "round";
         context.strokeStyle = strokeColor
         this.canvas.current.beginPath();
-        this.canvas.current.lineWidth = lineWidth;
+        let prevWidth = 0;
         paths.forEach(element => {
+            if (prevWidth !== 0 && prevWidth !== element.width) {
+                this.canvas.current.lineWidth = element.strokeWidth;
+                this.canvas.current.lineTo(element.x, element.y)
+                this.canvas.current.closePath();
+                this.canvas.current.stroke();
+            }
+            this.canvas.current.beginPath();
+            this.canvas.current.moveTo(element.x, element.y)
+            prevWidth = element.strokeWidth;
             this.canvas.current.lineTo(element.x, element.y)
         });
-        this.canvas.current.stroke();
+
     }
     getCoordinatesCanvas(pointerEvent) {
         const point = {
@@ -125,7 +145,21 @@ export class Canvas extends React.Component {
         point.pressure = event.pressure;
         point.tiltX = event.tiltX;
         point.tiltY = event.tiltY;
+        point.strokeWidth = this.getLineWidth(event);
         onPointerDown(point, event);
+    }
+    getLineWidth = (e) => {
+        switch (e.pointerType) {
+            case 'touch': {
+                if (e.width < 10 && e.height < 10) {
+                    return (e.width + e.height) * 2 + 10;
+                } else {
+                    return (e.width + e.height - 70) / 6;
+                }
+            }
+            case 'pen': return e.pressure * 4;//increase or decrease stroke width
+            default: return (e.pressure) ? e.pressure * 6 : 6;
+        }
     }
     handlePointerMove(event) {
         const { isDrawing, allowOnlyPointerType, onPointerMove } = this.props;
@@ -142,6 +176,7 @@ export class Canvas extends React.Component {
         point.pressure = event.pressure;
         point.tiltX = event.tiltX;
         point.tiltY = event.tiltY;
+        point.strokeWidth = this.getLineWidth(event);
         onPointerMove(point, event);
     }
     handlePointerUp(event) {
@@ -177,7 +212,7 @@ export class Canvas extends React.Component {
 
     /* Finally!!! Render method */
     render() {
-        const { width, height, background, style } = this.props;
+        const { width, height, style } = this.props;
         return (
             <div>
                 <canvas
@@ -185,7 +220,7 @@ export class Canvas extends React.Component {
                     onPointerMove={this.handlePointerMove}
                     onPointerUp={this.handlePointerUp}
                     ref={this.canvas}
-                    height={height}
+
                     width={width}
                     style={{
                         touchAction: "none",
@@ -193,7 +228,7 @@ export class Canvas extends React.Component {
                     }}
                 >
                 </canvas>
-            </div>
+            </div >
 
         );
     }

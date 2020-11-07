@@ -1,13 +1,13 @@
 import React from 'react';
 import { ReactSketchCanvas } from './ReactSketchCanvas';
 import Background from './bg.png';
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+// import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import "./App.css"
 import { CompactPicker } from 'react-color';
 
-const ffmpeg = createFFmpeg({
-  log: true,
-});
+// const ffmpeg = createFFmpeg({
+//   log: true,
+// });
 
 class App extends React.Component {
   constructor(props) {
@@ -21,7 +21,8 @@ class App extends React.Component {
     setVideoSrc: "",
     file: "",
     isRecording: false,
-    strokeColor: ""
+    strokeColor: "black",
+    background: ""
   }
   blobToFile = (theBlob, fileName) => {
     theBlob.lastModifiedDate = new Date();
@@ -42,6 +43,33 @@ class App extends React.Component {
 
     });
   }
+  handleBackgroundUpload = (event) => {
+    this.setState({
+      background: event.target.files[0]
+    }, () => {
+
+
+    });
+  }
+  getBase64 = (e) => {
+    if (e.target.files.length >= 1) {
+      var file = e.target.files[0]
+      let reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
+        this.setState({
+          background: reader.result
+        })
+      };
+      reader.onerror = function (error) {
+        console.log('Error: ', error);
+      }
+    } else {
+      alert("No file uploaded");
+    }
+
+  }
+
   timeStamp() {
     // Create a date object with the current time
     var now = new Date();
@@ -116,6 +144,7 @@ class App extends React.Component {
                 Redo
             </button>
 
+
               <button className="startRecording" style={{ backgroundColor: `${this.state.isRecording ? "#E64A19" : "#1976D2"} ` }} onClick={async () => {
                 this.setState({ isRecording: !this.state.isRecording }, async () => {
                   if (this.state.isRecording) {
@@ -141,7 +170,43 @@ class App extends React.Component {
                 })
               }
               }>{this.state.isRecording ? "Stop Recording" : "Start Recording"}</button>
+              <button
+                className="getImage"
+                onClick={() => {
+                  const data = this.canvas.current.exportImage("png")
+                  var a = document.createElement("a"); //Create <a>
+                  a.href = data;
+                  a.download = `Image_${this.timeStamp()}.png`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
 
+                }}
+              >
+                Download Image
+        </button>
+              <input className="choose" type="file" onChange={this.handleUpload} />
+              <label>upload background image</label>
+              <input className="choose" type="file" onChange={this.getBase64} />
+              <button
+                className="exportPaths"
+                onClick={async () => {
+
+                  const paths = await this.canvas.current.exportPaths(true);
+                  if (paths.length === 0)
+                    alert("Please draw something!");
+                  const blob = new Blob([JSON.stringify(paths)], { type: 'application/json' });
+                  const href = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = href;
+                  link.download = `paths_${this.timeStamp()}.json`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+              >
+                Export paths
+        </button>
             </div>
 
 
@@ -149,52 +214,18 @@ class App extends React.Component {
             <ReactSketchCanvas
               ref={this.canvas}
               width="1200px"
-              height="600px"
+
               strokeWidth={4}
               strokeColor={this.state.strokeColor}
-              background={Background}
+              background={this.state.background !== "" ? this.state.background : Background}
               withTimestamp={true}
             >
 
             </ReactSketchCanvas>
           </div>
-          <button
-            className="getImage"
-            onClick={() => {
-              const data = this.canvas.current.exportImage("png")
-              console.log(data);
-              var a = document.createElement("a"); //Create <a>
-              a.href = data;
-              a.download = `Image_${this.timeStamp()}.png`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
 
-            }}
-          >
-            Download Image
-        </button>
 
-          <input className="choose" type="file" onChange={this.handleUpload} />
-          <button
-            className="exportPaths"
-            onClick={async () => {
 
-              const paths = await this.canvas.current.exportPaths(true);
-              if (paths.length === 0)
-                alert("Please draw something!");
-              const blob = new Blob([JSON.stringify(paths)], { type: 'application/json' });
-              const href = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = href;
-              link.download = `paths_${this.timeStamp()}.json`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
-          >
-            Export paths
-        </button>
         </center>
 
       </div>
