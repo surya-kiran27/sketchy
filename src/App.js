@@ -189,6 +189,7 @@ class App extends React.Component {
               ref={this.canvas}
               width="1200px"
               strokeWidth={4}
+              allowOnlyPointerType="pen"
               strokeColor={this.state.strokeColor}
               background={this.state.background !== "" ? this.state.background : Background}
               withTimestamp={true}
