@@ -38,12 +38,9 @@ export class Canvas extends React.Component {
     /* Add event listener to Mouse up and Touch up to
     release drawing even when point goes out of canvas */
     componentDidMount() {
-
         document.addEventListener("pointerup", this.handlePointerUp);
         const canvas = this.canvas.current;
         const context = canvas.getContext("2d")
-
-
         var background = new Image();
         background.src = this.props.background;
         // Make sure the image is loaded first otherwise nothing will draw.
@@ -61,7 +58,6 @@ export class Canvas extends React.Component {
 
     }
     async componentDidUpdate(prevProps) {
-
         const paths = this.props.paths;
         if (this.state.record && paths.length >= 1) {
             this.startRecording();
@@ -95,9 +91,6 @@ export class Canvas extends React.Component {
     }
     componentWillUnmount() {
         document.removeEventListener("pointerup", this.handlePointerUp);
-    }
-    resetRecording = () => {
-        this.setState({ record: true })
     }
     clearCanvas() {
         const canvas = this.canvas.current.canvas;

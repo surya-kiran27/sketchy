@@ -131,7 +131,6 @@ export class ReactSketchCanvas extends React.Component {
         }), this.liftPathsUp);
     }
     clearCanvas() {
-        this.svgCanvas.current.resetRecording();
         this.setState(produce((draft) => {
             draft.resetStack = draft.currentPaths;
             draft.currentPaths = [];

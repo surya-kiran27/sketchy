@@ -170,7 +170,7 @@ class App extends React.Component {
                     link.click();
                     document.body.removeChild(link);
                   }
-
+                  window.location.reload();
                 }}
               >
                 Download All
@@ -188,7 +188,6 @@ class App extends React.Component {
             <ReactSketchCanvas
               ref={this.canvas}
               width="1200px"
-
               strokeWidth={4}
               strokeColor={this.state.strokeColor}
               background={this.state.background !== "" ? this.state.background : Background}
