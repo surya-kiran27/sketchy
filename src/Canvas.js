@@ -9,12 +9,13 @@ const defaultProps = {
     canvasColor: "red",
     background: "",
     strokeColor: "black",
-    allowOnlyPointerType: "all",
+    allowOnlyPointerType: "pen",
     style: {
         border: "0.0625rem solid #9c9c9c",
         borderRadius: "0.25rem",
     },
     withTimeStamp: true,
+
 };
 export class Canvas extends React.Component {
     constructor(props) {
@@ -30,14 +31,19 @@ export class Canvas extends React.Component {
 
     }
     state = {
-        paths: {}
+        paths: {},
+        record: false
+
     }
     /* Add event listener to Mouse up and Touch up to
     release drawing even when point goes out of canvas */
     componentDidMount() {
+
         document.addEventListener("pointerup", this.handlePointerUp);
         const canvas = this.canvas.current;
         const context = canvas.getContext("2d")
+
+
         var background = new Image();
         background.src = this.props.background;
         // Make sure the image is loaded first otherwise nothing will draw.
@@ -51,9 +57,16 @@ export class Canvas extends React.Component {
         context.lineWidth = 5
 
         this.canvas.current = context;
+        this.setState({ record: true })
+
     }
     async componentDidUpdate(prevProps) {
+
         const paths = this.props.paths;
+        if (this.state.record && paths.length >= 1) {
+            this.startRecording();
+            this.setState({ record: false })
+        }
         if (prevProps.background !== this.props.background) {
             const canvas = this.canvas.current.canvas;
             const context = canvas.getContext("2d")
@@ -72,6 +85,7 @@ export class Canvas extends React.Component {
             });
         }
         if (paths.length === 0) {
+
             this.clearCanvas();
         }
         else
@@ -82,7 +96,9 @@ export class Canvas extends React.Component {
     componentWillUnmount() {
         document.removeEventListener("pointerup", this.handlePointerUp);
     }
-
+    resetRecording = () => {
+        this.setState({ record: true })
+    }
     clearCanvas() {
         const canvas = this.canvas.current.canvas;
         const context = canvas.getContext("2d");
@@ -91,6 +107,7 @@ export class Canvas extends React.Component {
 
         var background = new Image();
         background.src = this.props.background;
+
         return new Promise((resolve, reject) => {
             background.onload = () => {
                 context.drawImage(background, 0, 0, canvas.width, canvas.height);
@@ -109,6 +126,7 @@ export class Canvas extends React.Component {
         this.canvas.current.beginPath();
         let prevWidth = 0;
         paths.forEach(element => {
+
             if (prevWidth !== 0 && prevWidth !== element.width) {
                 this.canvas.current.lineWidth = element.strokeWidth;
                 this.canvas.current.lineTo(element.x, element.y)
@@ -191,6 +209,7 @@ export class Canvas extends React.Component {
         onPointerUp();
     }
     startRecording = (() => {
+
         recorder.createStream(this.canvas.current.canvas);
         recorder.start();
     })
@@ -200,19 +219,20 @@ export class Canvas extends React.Component {
             recorder.stop();
             const file = recorder.save();
             resolve(file);
+
         })
 
     });
     /* Mouse Handlers ends */
     // Creates a image from SVG and renders it on canvas, then exports the canvas as image
-    exportImage(imageType) {
+    exportImage() {
         return this.canvas.current.canvas.toDataURL();
 
     }
 
     /* Finally!!! Render method */
     render() {
-        const { width, height, style } = this.props;
+        const { width, style } = this.props;
         return (
             <div>
                 <canvas

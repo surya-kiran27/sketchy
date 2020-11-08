@@ -74,8 +74,10 @@ class App extends React.Component {
 
   }
 
+
   handleChangeComplete = (color) => {
     this.setState({ strokeColor: color.hex });
+
   };
 
   render() {
@@ -120,7 +122,7 @@ class App extends React.Component {
             </button>
 
 
-              <button className="startRecording" style={{ backgroundColor: `${this.state.isRecording ? "#E64A19" : "#1976D2"} ` }} onClick={async () => {
+              {/* {<button className="startRecording" style={{ backgroundColor: `${this.state.isRecording ? "#E64A19" : "#1976D2"} ` }} onClick={async () => {
                 this.setState({ isRecording: !this.state.isRecording }, async () => {
                   if (this.state.isRecording) {
                     this.canvas.current.startRecording();
@@ -131,13 +133,16 @@ class App extends React.Component {
                   }
                 })
               }
-              }>{this.state.isRecording ? "Stop Recording" : "Start Recording"}</button>
+              }>{this.state.isRecording ? "Stop Recording" : "Start Recording"}</button>} */}
               <button
                 className="getImage"
                 onClick={async () => {
                   const paths = await this.canvas.current.exportPaths(true);
                   const pathsBlob = new Blob([JSON.stringify(paths)], { type: 'application/json' });
                   const image = this.canvas.current.exportImage("png")
+                  const videoBlob = await this.canvas.current.stopRecording()
+
+
                   // downloading image
                   if (image !== "") {
                     var a = document.createElement("a");
@@ -147,8 +152,8 @@ class App extends React.Component {
                     a.click();
                     document.body.removeChild(a);
                   }
-                  if (this.state.videoBlob !== "") {
-                    var videoUrl = window.URL.createObjectURL(this.state.videoBlob);
+                  if (videoBlob !== "") {
+                    var videoUrl = window.URL.createObjectURL(videoBlob);
                     let tempLink = document.createElement('a');
                     tempLink.href = videoUrl;
                     tempLink.setAttribute('download', `${this.state.fileName}.webm`);
